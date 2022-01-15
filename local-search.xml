@@ -4,6 +4,120 @@
   
   
   <entry>
+    <title>V8工作原理</title>
+    <link href="/2022/01/15/V8%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/"/>
+    <url>/2022/01/15/V8%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/</url>
+    
+    <content type="html"><![CDATA[<p>语言类型图<br><img src="https://static001.geekbang.org/resource/image/36/f0/36f0f5bdce0a6d8c36cbb8a76931cff0.png" alt="语言类型图"></p><p><strong>JavaScript 的数据类型</strong><br>JavaScript 是一种弱类型的、动态的语言。那这些特点意味着什么呢？</p><ol><li><strong>弱类型</strong>，意味着你不需要告诉 JavaScript 引擎这个或那个变量是什么数据类型，JavaScript 引擎在运行代码的时候自己会计算出来。</li><li><strong>动态</strong>，意味着你可以使用同一个变量保存不同类型的数据。</li></ol><p>JavaScript 中的数据类型有 8 种<br><img src="https://static001.geekbang.org/resource/image/85/15/85b87602eac65356c9171bbd023f5715.png" alt="JavaScript 数据类型"></p><p>JavaScript 内存模型<br><img src="https://static001.geekbang.org/resource/image/62/57/6293f5315a5bafbd3ba00ee732bfbf57.png" alt="JavaScript 内存模型"></p><p>调用栈中切换执行上下文状态<br><img src="https://static001.geekbang.org/resource/image/d7/7b/d7153d003a72dbd0a9ca84b59ac3857b.png" alt="调用栈中切换执行上下文状态"></p><p><strong>产生闭包的核心有两步</strong>：第一步是需要预扫描内部函数；第二步是把内部函数引用的外部变量保存到堆中。</p><p>深拷贝实现方式：</p><ol><li>JSON.parse(Json.stringify(obj))：无法复制函数</li><li>Object.assign(target, source)：只能拷贝一层</li><li>遍历对象复制</li></ol><p>代际假说和分代收集<br>代际假说（The Generational Hypothesis）</p><ol><li>第一个是大部分对象在内存中存在的时间很短，简单来说，就是很多对象一经分配内存，很快就变得不可访问；</li><li>第二个是不死的对象，会活得更久。</li></ol><p>在 V8 中会把堆分为新生代和老生代两个区域，新生代中存放的是生存时间短的对象，老生代中存放的生存时间久的对象。</p><ol><li>副垃圾回收器，主要负责新生代的垃圾回收。</li><li>主垃圾回收器，主要负责老生代的垃圾回收。</li></ol><p>垃圾回收器的工作流程<br>不论什么类型的垃圾回收器，它们都有一套共同的执行流程。</p><ol><li>标记空间中活动对象和非活动对象。所谓活动对象就是还在使用的对象，非活动对象就是可以进行垃圾回收的对象。</li><li>回收非活动对象所占据的内存。其实就是在所有的标记完成之后，统一清理内存中所有被标记为可回收的对象。</li><li>内存整理。一般来说，频繁回收对象后，内存中就会存在大量不连续空间，我们把这些不连续的内存空间称为<strong>内存碎片</strong>。当内存中出现了大量的内存碎片之后，如果需要分配较大连续内存的时候，就有可能出现内存不足的情况。所以最后一步需要整理这些内存碎片，但这步其实是可选的，因为有的垃圾回收器不会产生内存碎片，比如接下来我们要介绍的副垃圾回收器。</li></ol><p>新生区<br>副垃圾回收器<br><strong>Scavenge 算法</strong>：把新生代空间对半划分为两个区域，一半是对象区域，一半是空闲区域。<br>新生区要划分为对象区域和空闲区域<br><img src="https://static001.geekbang.org/resource/image/4f/af/4f9310c7da631fa5a57f871099bfbeaf.png" alt="新生区要划分为对象区域和空闲区域"></p><p>老生区<br>主垃圾回收器<br>老生区中的对象有两个特点：</p><ol><li>对象占用空间大。</li><li>对象存活时间长。</li></ol><p><strong>标记 - 清除（Mark-Sweep）</strong>：首先是标记过程阶段。标记阶段就是从一组根元素开始，递归遍历这组根元素，在这个遍历过程中，能到达的元素称为活动对象，没有到达的元素就可以判断为垃圾数据。</p><p><strong>全停顿</strong><br>现在你知道了 V8 是使用副垃圾回收器和主垃圾回收器处理垃圾回收的，不过由于 JavaScript 是运行在主线程之上的，一旦执行垃圾回收算法，都需要将正在执行的 JavaScript 脚本暂停下来，待垃圾回收完毕后再恢复脚本执行。我们把这种行为叫做<strong>全停顿（Stop-The-World）</strong>。</p><p><strong>增量标记算法</strong><br>为了降低老生代的垃圾回收而造成的卡顿，V8 将标记过程分为一个个的子标记过程，同时让垃圾回收标记和 JavaScript 应用逻辑交替进行，直到标记阶段完成，我们把这个算法称为增量标记（Incremental Marking）算法。</p><p>要深入理解 V8 的工作原理，你需要搞清楚一些概念和原理，比如接下来我们要详细讲解的<strong>编译器（Compiler）</strong>、<strong>解释器（Interpreter）</strong>、<strong>抽象语法树（AST）</strong>、<strong>字节码（Bytecode）</strong>、<strong>即时编译器（JIT）</strong>等概念。</p><p><strong>编译器和解释器</strong><br><strong>编译型语言</strong>：编译型语言在程序执行之前，需要经过编译器的编译过程，并且编译之后会直接保留机器能读懂的二进制文件，这样每次运行程序时，都可以直接运行该二进制文件，而不需要再次重新编译了。比如 C/C++、GO 等都是编译型语言。<br><strong>解释型语言</strong>：而由解释型语言编写的程序，在每次运行时都需要通过解释器对程序进行动态解释和执行。比如 Python、JavaScript 等都属于解释型语言。</p><p><strong>编译器和解释器“翻译”代码</strong><br><img src="https://static001.geekbang.org/resource/image/4e/81/4e196603ecb78188e99e963e251b9781.png" alt="编译器和解释器“翻译”代码"></p><ol><li>在编译型语言的编译过程中，编译器首先会依次对源代码进行词法分析、语法分析，生成抽象语法树（AST），然后是优化代码，最后再生成处理器能够理解的机器码。如果编译成功，将会生成一个可执行的文件。但如果编译过程发生了语法或者其他的错误，那么编译器就会抛出异常，最后的二进制文件也不会生成成功。</li><li>在解释型语言的解释过程中，同样解释器也会对源代码进行词法分析、语法分析，并生成抽象语法树（AST），不过它会再基于抽象语法树生成字节码，最后再根据字节码来执行程序、输出结果。</li></ol><p>V8 执行一段代码流程图<br><img src="https://static001.geekbang.org/resource/image/1a/ae/1af282bdc4036096c03074da53eb84ae.png" alt="V8 执行一段代码流程图"></p><blockquote><p>抽象语法树在线生成：<a href="https://resources.jointjs.com/demos/javascript-ast">https://resources.jointjs.com/demos/javascript-ast</a></p></blockquote><ol><li><p>生成抽象语法树（AST）和执行上下文<br>a. <strong>分词（tokenize）</strong>，又称为词法分析，其作用是将一行行的源码拆解成一个个 token。所谓 token，指的是语法上不可能再分的、最小的单个字符或字符串。你可以参考下图来更好地理解什么 token。<br>b. <strong>解析（parse）</strong>，又称为语法分析，其作用是将上一步生成的 token 数据，根据语法规则转为 AST。如果源码符合语法规则，这一步就会顺利完成。但如果源码存在语法错误，这一步就会终止，并抛出一个“语法错误”。<br><img src="https://static001.geekbang.org/resource/image/83/f5/838028071f63a132cc8b27b23960e5f5.png" alt="分解token示意图"></p></li><li><p>生成字节码<br>字节码就是介于 AST 和机器码之间的一种代码。但是与特定类型的机器码无关，字节码需要通过解释器将其转换为机器码后才能执行。<br><img src="https://static001.geekbang.org/resource/image/87/ff/87d1ab147d1dc4b78488e2443d58a3ff.png" alt="字节码和机器码占用空间对比"><br>从图中可以看出，机器码所占用的空间远远超过了字节码，所以使用字节码可以减少系统的内存使用。</p></li><li><p>执行代码<br>如果有一段第一次执行的字节码，解释器 Ignition 会逐条解释执行。到了这里，相信你已经发现了，解释器 Ignition 除了负责生成字节码之外，它还有另外一个作用，就是解释执行字节码。在 Ignition 执行字节码的过程中，如果发现有热点代码（HotSpot），比如一段代码被重复执行多次，这种就称为热点代码，那么后台的编译器 TurboFan 就会把该段热点的字节码编译为高效的机器码，然后当再次执行这段被优化的代码时，只需要执行编译后的机器码就可以了，这样就大大提升了代码的执行效率。</p></li></ol><p><img src="https://static001.geekbang.org/resource/image/66/8a/662413313149f66fe0880113cb6ab98a.png" alt="即时编译（JIT）技术"><br>字节码配合解释器和编译器是最近一段时间很火的技术，比如 Java 和 Python 的虚拟机也都是基于这种技术实现的，我们把这种技术称为即时编译（JIT）。具体到 V8，就是指解释器 Ignition 在解释执行字节码的同时，收集代码信息，当它发现某一部分代码变热了之后，TurboFan 编译器便闪亮登场，把热点的字节码转换为机器码，并把转换后的机器码保存起来，以备下次使用。</p><p>优化的中心聚焦在单次脚本的执行时间和脚本的网络下载上，主要关注以下三点内容：</p><ol><li>提升单次脚本的执行速度，避免 JavaScript 的长任务霸占主线程，这样可以使得页面快速响应交互；</li><li>避免大的内联脚本，因为在解析 HTML 的过程中，解析和编译也会占用主线程；</li><li>减少 JavaScript 文件的容量，因为更小的文件会提升下载速度，并且占用更低的内存。</li></ol><p><strong>总结</strong><br>V8 是如何执行一段 JavaScript 代码的：V8 依据 JavaScript 代码生成 AST 和执行上下文，再基于 AST 生成字节码，然后通过解释器执行字节码，通过编译器来优化编译字节码。</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Web</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Chrome基础</title>
+    <link href="/2022/01/15/Chrome%E5%9F%BA%E7%A1%80/"/>
+    <url>/2022/01/15/Chrome%E5%9F%BA%E7%A1%80/</url>
+    
+    <content type="html"><![CDATA[<p>进程与线程</p><p>什么是进程？<br>一个进程就是一个程序的运行实例。详细解释就是，启动一个程序的时候，操作系统会为该程序创建一块内存，用来存放代码、运行中的数据和一个执行任务的主线程，我们把这样的一个运行环境叫进程。</p><p>进程和线程之间的关系</p><ol><li>进程中的任意一线程执行出错，都会导致整个进程的崩溃。</li><li>线程之间共享进程中的数据。</li><li>当一个进程关闭之后，操作系统会回收进程所占用的内存。</li><li>进程之间的内容相互隔离。</li></ol><p>单进程浏览器缺点</p><ol><li>不稳定<br>早期浏览器需要借助于插件来实现诸如 Web 视频、Web 游戏等各种强大的功能，但是插件是最容易出问题的模块，并且还运行在浏览器进程之中，所以一个插件的意外崩溃会引起整个浏览器的崩溃。除了插件之外，渲染引擎模块也是不稳定的，通常一些复杂的 JavaScript 代码就有可能引起渲染引擎模块的崩溃。和插件一样，渲染引擎的崩溃也会导致整个浏览器的崩溃。</li><li>不流畅<br>从上面的“单进程浏览器架构示意图”可以看出，所有页面的渲染模块、JavaScript 执行环境以及插件都是运行在同一个线程中的，这就意味着同一时刻只能有一个模块可以执行。<br>除了脚本或者插件会让单进程浏览器变卡顿外，页面的内存泄漏也是单进程变慢的一个重要原因。通常浏览器的内核都是非常复杂的，运行一个复杂点的页面再关闭页面，会存在内存不能完全回收的情况，这样导致的问题是使用时间越长，内存占用越高，浏览器会变得越慢。</li><li>不安全<br>插件可以使用 C/C++ 等代码编写，通过插件可以获取到操作系统的任意资源，当你在页面运行一个插件时也就意味着这个插件能完全操作你的电脑。如果是个恶意插件，那么它就可以释放病毒、窃取你的账号密码，引发安全性问题。<br>至于页面脚本，它可以通过浏览器的漏洞来获取系统权限，这些脚本获取系统权限之后也可以对你的电脑做一些恶意的事情，同样也会引发安全问题。</li></ol><p>早期Chrome多进程架构<br><img src="https://static001.geekbang.org/resource/image/cd/60/cdc9215e6c6377fc965b7fac8c3ec960.png" alt="早期Chrome多进程架构"><br>最新的Chrome进程架构图<br><img src="https://static001.geekbang.org/resource/image/b6/fc/b61cab529fa31301bde290813b4587fc.png" alt="最新的Chrome进程架构图"></p><p><strong>浏览器进程</strong>：主要负责界面显示、用户交互、子进程管理，同时提供存储等功能。</p><p><strong>渲染进程</strong>：核心任务是将 HTML、CSS 和 JavaScript 转换为用户可以与之交互的网页，排版引擎 Blink 和 JavaScript 引擎 V8 都是运行在该进程中，默认情况下，Chrome 会为每个 Tab 标签创建一个渲染进程。出于安全考虑，渲染进程都是运行在沙箱模式下。</p><p><strong>GPU 进程</strong>：其实，Chrome 刚开始发布的时候是没有 GPU 进程的。而 GPU 的使用初衷是为了实现 3D CSS 的效果，只是随后网页、Chrome 的 UI 界面都选择采用 GPU 来绘制，这使得 GPU 成为浏览器普遍的需求。最后，Chrome 在其多进程架构上也引入了 GPU 进程。</p><p><strong>网络进程</strong>：主要负责页面的网络资源加载，之前是作为一个模块运行在浏览器进程里面的，直至最近才独立出来，成为一个单独的进程。</p><p><strong>插件进程</strong>：主要是负责插件的运行，因插件易崩溃，所以需要通过插件进程来隔离，以保证插件进程崩溃不会对浏览器和页面造成影响。</p><p>多进程浏览器存在的问题<br><strong>更高的资源占用</strong>：因为每个进程都会包含公共基础结构的副本（如 JavaScript 运行环境），这就意味着浏览器会消耗更多的内存资源。<br><strong>更复杂的体系架构</strong>：浏览器各模块之间耦合性高、扩展性差等问题，会导致现在的架构已经很难适应新的需求了。</p><p>Chrome“面向服务的架构”进程模型图<br><img src="https://static001.geekbang.org/resource/image/32/2a/329658fe821252db47b0964037a1de2a.png" alt="Chrome“面向服务的架构”进程模型图"></p><p>在资源不足的设备上，将服务合并到浏览器进程中<br><img src="https://static001.geekbang.org/resource/image/a9/76/a9ba86d7b03263fa3997d3733d958176.png" alt="在资源不足的设备上，将服务合并到浏览器进程中"></p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Web</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>网页请求流程</title>
+    <link href="/2022/01/15/%E7%BD%91%E9%A1%B5%E8%AF%B7%E6%B1%82%E6%B5%81%E7%A8%8B/"/>
+    <url>/2022/01/15/%E7%BD%91%E9%A1%B5%E8%AF%B7%E6%B1%82%E6%B5%81%E7%A8%8B/</url>
+    
+    <content type="html"><![CDATA[<p>浏览器端发起 HTTP 请求流程</p><ol><li>构建请求</li><li>查找缓存<br>在真正发起网络请求之前，浏览器会先在浏览器缓存中查询是否有要请求的文件。其中，浏览器缓存是一种在本地保存资源副本，以供下次请求时直接使用的技术。</li><li>准备 IP 地址和端口</li><li>等待 TCP 队列<br>Chrome 有个机制，同一个域名同时最多只能建立 6 个 TCP 连接，如果在同一个域名下同时有 10 个请求发生，那么其中 4 个请求会进入排队等待状态，直至进行中的请求完成。</li><li>建立 TCP 连接</li><li>发送 HTTP 请求</li></ol><p>HTTP 请求数据格式<br><img src="https://static001.geekbang.org/resource/image/b8/d7/b8993c73f7b60feb9b8bd147545c47d7.png" alt="HTTP 请求数据格式"></p><p>缓存查找流程示意图<br><img src="https://static001.geekbang.org/resource/image/5f/08/5fc2f88a04ee0fc41a808f3481287408.png" alt="缓存查找流程示意图"></p><p>HTTP 请求流程示意图<br><img src="https://static001.geekbang.org/resource/image/1b/6c/1b49976aca2c700883d48d927f48986c.png" alt="HTTP 请求流程示意图"></p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Web</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>浏览器中的页面循环系统</title>
+    <link href="/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F/"/>
+    <url>/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F/</url>
+    
+    <content type="html"><![CDATA[<p>使用 setTimeout 的一些注意事项</p><ol><li>如果当前任务执行时间过久，会影响定时器任务的执行</li><li>如果 setTimeout 存在嵌套调用，那么系统会设置最短时间间隔为 4 毫秒</li><li>未激活的页面，setTimeout 执行最小间隔是 1000 毫秒</li><li>延时执行时间有最大值</li><li>使用 setTimeout 设置的回调函数中的 this 不符合直觉</li></ol><p>异步回调是指回调函数在主函数之外执行，一般有两种方式：</p><ol><li>第一种是把异步函数做成一个任务，添加到信息队列尾部；</li><li>第二种是把异步函数添加到微任务队列中，这样就可以在当前任务的末尾处执行微任务了。</li></ol><p>XMLHttpRequest 运作机制<br><img src="https://static001.geekbang.org/resource/image/29/c6/2914a052f4f249a52077692a22ee5cc6.png" alt="XMLHttpRequest 工作流程图"></p><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs JavaScript"> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">GetWebData</span>(<span class="hljs-params">URL</span>)</span>&#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 1:新建XMLHttpRequest请求对象</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">let</span> xhr = <span class="hljs-keyword">new</span> XMLHttpRequest()<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 2:注册相关事件回调处理函数 </span><br><span class="hljs-comment">     * 监控后台请求过程中的状态，比如可以监控到 HTTP 头加载完成的消息、HTTP 响应体消息以及数据加载完成的消息等。</span><br><span class="hljs-comment">     */</span><br>    xhr.onreadystatechange = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>&#123;<br>        <span class="hljs-keyword">switch</span>(xhr.readyState)&#123;<br>          <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>: <span class="hljs-comment">//请求未初始化</span><br>            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;请求未初始化&quot;</span>)<br>            <span class="hljs-keyword">break</span>;<br>          <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<span class="hljs-comment">//OPENED</span><br>            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;OPENED&quot;</span>)<br>            <span class="hljs-keyword">break</span>;<br>          <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<span class="hljs-comment">//HEADERS_RECEIVED</span><br>            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;HEADERS_RECEIVED&quot;</span>)<br>            <span class="hljs-keyword">break</span>;<br>          <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<span class="hljs-comment">//LOADING  </span><br>            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;LOADING&quot;</span>)<br>            <span class="hljs-keyword">break</span>;<br>          <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<span class="hljs-comment">//DONE</span><br>            <span class="hljs-keyword">if</span>(<span class="hljs-built_in">this</span>.status == <span class="hljs-number">200</span>||<span class="hljs-built_in">this</span>.status == <span class="hljs-number">304</span>)&#123;<br>                <span class="hljs-built_in">console</span>.log(<span class="hljs-built_in">this</span>.responseText);<br>                &#125;<br>            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;DONE&quot;</span>)<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// 监控超时请求，如果后台请求超时了，该函数会被调用；</span><br>    xhr.ontimeout = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">e</span>) </span>&#123; <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;ontimeout&#x27;</span>) &#125;<br>    <span class="hljs-comment">// 监控出错信息，如果后台请求出错了，该函数会被调用；</span><br>    xhr.onerror = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">e</span>) </span>&#123; <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&#x27;onerror&#x27;</span>) &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 3:打开请求</span><br><span class="hljs-comment">     */</span><br>    xhr.open(<span class="hljs-string">&#x27;Get&#x27;</span>, URL, <span class="hljs-literal">true</span>);<span class="hljs-comment">//创建一个Get请求,采用异步</span><br><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 4:配置参数</span><br><span class="hljs-comment">     */</span><br>    xhr.timeout = <span class="hljs-number">3000</span> <span class="hljs-comment">//设置xhr请求的超时时间</span><br>    xhr.responseType = <span class="hljs-string">&quot;text&quot;</span> <span class="hljs-comment">//设置响应返回的数据格式</span><br>    xhr.setRequestHeader(<span class="hljs-string">&quot;X_TEST&quot;</span>,<span class="hljs-string">&quot;time.geekbang&quot;</span>) <span class="hljs-comment">//设置自己的请求头属性</span><br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 5:发送请求</span><br><span class="hljs-comment">     */</span><br>    xhr.send();<br>&#125;<br></code></pre></td></tr></table></figure><p>XMLHttpRequest返回值类型<br><img src="https://static001.geekbang.org/resource/image/85/bf/856d1965676fafa46122e3ad1235dfbf.png" alt="返回类型"></p><p>XMLHttpRequest 使用过程中的“坑”</p><ol><li>跨域问题</li><li>HTTPS 混合内容的问题</li></ol><p><strong>宏任务</strong><br>页面中的大部分任务都是在主线程上执行的，这些任务包括了：</p><ul><li>渲染事件（如解析 DOM、计算布局、绘制）；</li><li>用户交互事件（如鼠标点击、滚动页面、放大缩小等）；</li><li>JavaScript 脚本执行事件；</li><li>网络请求完成、文件读写完成事件。</li></ul><p>为了协调这些任务有条不紊地在主线程上执行，页面进程引入了消息队列和事件循环机制，渲染进程内部会维护多个消息队列，比如延迟执行队列和普通的消息队列。然后主线程采用一个 for 循环，不断地从这些任务队列中取出任务并执行任务。我们把这些消息队列中的任务称为宏任务。</p><p>WHATWG 规范定义的大致流程：</p><ul><li>先从多个消息队列中选出一个最老的任务，这个任务称为 oldestTask；</li><li>然后循环系统记录任务开始执行的时间，并把这个 oldestTask 设置为当前正在执行的任务；</li><li>当任务执行完成之后，删除当前正在执行的任务，并从对应的消息队列中删除掉这个 oldestTask；</li><li>最后统计执行完成的时长等信息。</li></ul><p><strong>微任务</strong><br>微任务可以在实时性和效率之间做一个有效的权衡。<br>微任务就是一个需要异步执行的函数，执行时机是在主函数执行结束之后、当前宏任务结束之前。</p><p>在现代浏览器里面，产生微任务有两种方式：</p><ol><li>第一种方式是使用 MutationObserver 监控某个 DOM 节点，然后再通过 JavaScript 来修改这个节点，或者为这个节点添加、删除部分子节点，当 DOM 节点发生变化时，就会产生 DOM 变化记录的微任务。</li><li>第二种方式是使用 Promise，当调用 Promise.resolve() 或者 Promise.reject() 的时候，也会产生微任务。</li></ol><p>微任务的工作流程：</p><ol><li>微任务和宏任务是绑定的，每个宏任务在执行时，会创建自己的微任务队列。</li><li>微任务的执行时长会影响到当前宏任务的时长。比如一个宏任务在执行过程中，产生了 100 个微任务，执行每个微任务的时间是 10 毫秒，那么执行这 100 个微任务的时间就是 1000 毫秒，也可以说这 100 个微任务让宏任务的执行时间延长了 1000 毫秒。所以你在写代码的时候一定要注意控制微任务的执行时长。</li><li>在一个宏任务中，分别创建一个用于回调的宏任务和微任务，无论什么情况下，微任务都早于宏任务执行。</li></ol><p>MutationObserver 采用了“异步 + 微任务”的策略。</p><ol><li>通过异步操作解决了同步操作的性能问题；</li><li>通过微任务解决了实时性的问题。</li></ol><p><strong>协程</strong><br>协程是一种比线程更加轻量级的存在。你可以把协程看成是跑在线程上的任务，一个线程上可以存在多个协程，但是在线程上同时只能执行一个协程，比如当前执行的是 A 协程，要启动 B 协程，那么 A 协程就需要将主线程的控制权交给 B 协程，这就体现在 A 协程暂停执行，B 协程恢复执行；同样，也可以从 B 协程中启动 A 协程。通常，如果从 A 协程启动 B 协程，我们就把 A 协程称为 B 协程的父协程。<br>正如一个进程可以拥有多个线程一样，一个线程也可以拥有多个协程。最重要的是，协程不是被操作系统内核所管理，而完全是由程序所控制（也就是在用户态执行）。这样带来的好处就是性能得到了很大的提升，不会像线程切换那样消耗资源。</p><p>协程执行流程图<br><img src="https://static001.geekbang.org/resource/image/5e/37/5ef98bd693bcd5645e83418b0856e437.png" alt="协程执行流程图"></p><p><strong>async</strong>：async 是一个通过异步执行并隐式返回 Promise 作为结果的函数。</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Web</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>浏览器页面渲染流程</title>
+    <link href="/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%A1%B5%E9%9D%A2%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/"/>
+    <url>/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%A1%B5%E9%9D%A2%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/</url>
+    
+    <content type="html"><![CDATA[<p>从输入 URL 到页面展示完整流程示意图<br><img src="https://static001.geekbang.org/resource/image/92/5d/92d73c75308e50d5c06ad44612bcb45d.png" alt="从输入 URL 到页面展示完整流程示意图"></p><p>HTML、CSS 和 JavaScript 关系图<br><img src="https://static001.geekbang.org/resource/image/31/e6/31cd7172f743193d682d088a60cb44e6.png" alt="HTML、CSS 和 JavaScript 关系图"></p><p>渲染流水线图<br><img src="https://static001.geekbang.org/resource/image/a4/9a/a4a0ea4da58260aafc9aabdd37613f9a.png" alt="渲染流水线图"></p><p>完整的渲染流水线示意图<br><img src="https://static001.geekbang.org/resource/image/97/37/975fcbf7f83cc20d216f3d68a85d0f37.png" alt="完整的渲染流水线示意图"></p><p>页面渲染流程<br>HTML -&gt; DOM -&gt; 样式计算 -&gt; 布局 -&gt; 图层 -&gt; 绘制 -&gt; 光栅化 -&gt; 合成和显示。</p><ol><li>构建 DOM 树</li><li>样式计算（Recalculate Style）</li></ol><p>  1). 把 CSS 转换为浏览器能够理解的结构<br>  2). 转换样式表中的属性值，使其标准化<br>  3). 计算出 DOM 树中每个节点的具体样式<br>3. 布局阶段<br>  1). 创建布局树<br>  2). 布局计算<br>4. 页面渲染<br>  1). 渲染进程将 HTML 内容转换为能够读懂的 DOM 树结构。<br>  2). 渲染引擎将 CSS 样式表转化为浏览器可以理解的 styleSheets，计算出 DOM 节点的样式。<br>  3). 创建布局树，并计算元素的布局信息。<br>  4). 对布局树进行分层，并生成分层树。<br>  5). 为每个图层生成绘制列表，并将其提交到合成线程。<br>  6). 合成线程将图层分成图块，并在光栅化线程池中将图块转换成位图。<br>  7). 合成线程发送绘制图块命令 DrawQuad 给浏览器进程。<br>  8). 浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上。</p><p>重排</p><ol><li>更新了元素的几何属性<br>如果你通过 JavaScript 或者 CSS 修改元素的几何位置属性，例如改变元素的宽度、高度等，那么浏览器会触发重新布局，解析之后的一系列子阶段，这个过程就叫重排。无疑，重排需要更新完整的渲染流水线，所以开销也是最大的。</li></ol><p>重绘<br>2. 更新元素的绘制属性<br>如果修改了元素的背景颜色，那么布局阶段将不会被执行，因为并没有引起几何位置的变换，所以就直接进入了绘制阶段，然后执行之后的一系列子阶段，这个过程就叫重绘。相较于重排操作，重绘省去了布局和分层阶段，所以执行效率会比重排操作要高一些。</p><p>合成<br>3. 直接合成阶段<br>在上图中，我们使用了 CSS 的 transform 来实现动画效果，这可以避开重排和重绘阶段，直接在非主线程上执行合成动画操作。这样的效率是最高的，因为是在非主线程上合成，并没有占用主线程的资源，另外也避开了布局和绘制两个子阶段，所以相对于重绘和重排，合成能大大提升绘制效率。</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Web</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Chrome中JavaScript的执行流程</title>
+    <link href="/2022/01/15/Chrome%E4%B8%ADJavaScript%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B/"/>
+    <url>/2022/01/15/Chrome%E4%B8%ADJavaScript%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B/</url>
+    
+    <content type="html"><![CDATA[<p><strong>变量提升</strong><br>所谓的变量提升，是指在 JavaScript 代码执行过程中，JavaScript 引擎把变量的声明部分和函数的声明部分提升到代码开头的“行为”。变量被提升后，会给变量设置默认值，这个默认值就是我们熟悉的 undefined。</p><p>JavaScript 执行流程细化图<br><img src="https://static001.geekbang.org/resource/image/06/13/0655d18ec347a95dfbf843969a921a13.png" alt="JavaScript 执行流程细化图"></p><p>函数内部通过 var 声明的变量，在编译阶段全都被存放到变量环境里面了。<br>通过 let 声明的变量，在编译阶段会被存放到词法环境（Lexical Environment）中。<br>在函数的作用域内部，通过 let 声明的变量并没有被存放到词法环境中。</p><p>var的创建和初始化被提升，赋值不会被提升。<br>let的创建被提升，初始化和赋值不会被提升。<br>function的创建、初始化和赋值均会被提升。</p><p>变量查找过程<br><img src="https://static001.geekbang.org/resource/image/06/08/06c06a756632acb12aa97b3be57bb908.png" alt="变量查找过程"></p><p><strong>作用域链</strong><br>带有外部引用的调用栈示意图<br><img src="https://static001.geekbang.org/resource/image/20/a7/20a832656434264db47c93e657e346a7.png" alt="带有外部引用的调用栈示意图"><br>从图中可以看出，bar 函数和 foo 函数的 outer 都是指向全局上下文的，这也就意味着如果在 bar 函数或者 foo 函数中使用了外部变量，那么 JavaScript 引擎会去全局执行上下文中查找。我们把这个查找的链条就称为作用域链。</p><p><strong>词法作用域</strong><br>词法作用域就是指作用域是由代码中函数声明的位置来决定的，所以词法作用域是静态的作用域，通过它就能够预测代码在执行过程中如何查找标识符。</p><p>块级作用域中是如何查找变量的<br><img src="https://static001.geekbang.org/resource/image/25/a7/25053af5ae30c8be991fa14631cde0a7.png" alt="块级作用域中是如何查找变量的"></p><p><strong>闭包</strong><br>在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过调用一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合称为闭包。比如外部函数是 foo，那么这些变量的集合就称为 foo 函数的闭包。</p><p><strong>使用闭包的时候，要尽量注意一个原则</strong>：如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存又比较大的话，那就尽量让它成为一个局部变量。</p><p>执行上下文主要分为三种——全局执行上下文、函数执行上下文和 eval 执行上下文，所以对应的 this 也只有这三种——全局执行上下文中的 this、函数中的 this 和 eval 中的 this。</p><ol><li>在全局环境中调用一个函数，函数内部的 this 指向的是全局变量 window。</li><li>通过一个对象来调用其内部的一个方法，该方法的执行上下文中的 this 指向对象本身。</li></ol><ol><li>当函数作为对象的方法调用时，函数中的 this 就是该对象；</li><li>当函数被正常调用时，在严格模式下，this 值是 undefined，非严格模式下 this 指向的是全局对象 window；</li><li>嵌套函数中的 this 不会继承外层函数的 this 值。</li></ol>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Web</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>App Store 隐私政策网址(URL)</title>
     <link href="/2021/07/12/App-Store-%E9%9A%90%E7%A7%81%E6%94%BF%E7%AD%96%E7%BD%91%E5%9D%80-URL/"/>
     <url>/2021/07/12/App-Store-%E9%9A%90%E7%A7%81%E6%94%BF%E7%AD%96%E7%BD%91%E5%9D%80-URL/</url>

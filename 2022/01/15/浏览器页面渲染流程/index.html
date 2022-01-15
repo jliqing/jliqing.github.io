@@ -18,9 +18,25 @@
   <meta name="author" content="Jansid">
   <meta name="keywords" content="Jansid, jliqing, Website">
   
-  <title>归档 - Jansid&#39;s Website</title>
+  <title>浏览器页面渲染流程 - Jansid&#39;s Website</title>
 
   <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.7.2/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
 
 
 
@@ -48,7 +64,7 @@
 
 
 <body>
-  <header style="height: 60vh;">
+  <header style="height: 70vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -147,9 +163,46 @@
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
           <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="归档">
+            <span class="h2" id="subtitle" title="浏览器页面渲染流程">
               
             </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-01-15 22:29" pubdate>
+        2022年1月15日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      671 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      7
+       分钟
+    </span>
+  
+
+  
+  
+</div>
 
             
           </div>
@@ -162,79 +215,103 @@
 
   <main>
     
-      <div class="container nopadding-x-md">
-        <div class="py-5" id="board"
-          >
-          
-          <div class="container">
-            <div class="row">
-              <div class="col-12 col-md-10 m-auto">
-                
-
-<div class="list-group">
-  <p class="h4">共计 7 篇文章</p>
-  <hr>
-  
-  
-    
       
-      <p class="h5">2022</p>
-    
-    <a href="/2022/01/15/V8%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">V8工作原理</span>
-      <time style="float: right;">01-15</time>
-    </a>
-  
-    
-    <a href="/2022/01/15/Chrome%E5%9F%BA%E7%A1%80/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">Chrome基础</span>
-      <time style="float: right;">01-15</time>
-    </a>
-  
-    
-    <a href="/2022/01/15/%E7%BD%91%E9%A1%B5%E8%AF%B7%E6%B1%82%E6%B5%81%E7%A8%8B/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">网页请求流程</span>
-      <time style="float: right;">01-15</time>
-    </a>
-  
-    
-    <a href="/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">浏览器中的页面循环系统</span>
-      <time style="float: right;">01-15</time>
-    </a>
-  
-    
-    <a href="/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E9%A1%B5%E9%9D%A2%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">浏览器页面渲染流程</span>
-      <time style="float: right;">01-15</time>
-    </a>
-  
-    
-    <a href="/2022/01/15/Chrome%E4%B8%ADJavaScript%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">Chrome中JavaScript的执行流程</span>
-      <time style="float: right;">01-15</time>
-    </a>
-  
-    
-      
-      <p class="h5">2021</p>
-    
-    <a href="/2021/07/12/App-Store-%E9%9A%90%E7%A7%81%E6%94%BF%E7%AD%96%E7%BD%91%E5%9D%80-URL/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">App Store 隐私政策网址(URL)</span>
-      <time style="float: right;">07-12</time>
-    </a>
-  
-</div>
 
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">浏览器页面渲染流程</h1>
+            
+            <div class="markdown-body">
+              <p>从输入 URL 到页面展示完整流程示意图<br><img src="https://static001.geekbang.org/resource/image/92/5d/92d73c75308e50d5c06ad44612bcb45d.png" srcset="/img/loading.gif" lazyload alt="从输入 URL 到页面展示完整流程示意图"></p>
+<p>HTML、CSS 和 JavaScript 关系图<br><img src="https://static001.geekbang.org/resource/image/31/e6/31cd7172f743193d682d088a60cb44e6.png" srcset="/img/loading.gif" lazyload alt="HTML、CSS 和 JavaScript 关系图"></p>
+<p>渲染流水线图<br><img src="https://static001.geekbang.org/resource/image/a4/9a/a4a0ea4da58260aafc9aabdd37613f9a.png" srcset="/img/loading.gif" lazyload alt="渲染流水线图"></p>
+<p>完整的渲染流水线示意图<br><img src="https://static001.geekbang.org/resource/image/97/37/975fcbf7f83cc20d216f3d68a85d0f37.png" srcset="/img/loading.gif" lazyload alt="完整的渲染流水线示意图"></p>
+<p>页面渲染流程<br>HTML -&gt; DOM -&gt; 样式计算 -&gt; 布局 -&gt; 图层 -&gt; 绘制 -&gt; 光栅化 -&gt; 合成和显示。</p>
+<ol>
+<li>构建 DOM 树</li>
+<li>样式计算（Recalculate Style）</li>
+</ol>
+<p>  1). 把 CSS 转换为浏览器能够理解的结构<br>  2). 转换样式表中的属性值，使其标准化<br>  3). 计算出 DOM 树中每个节点的具体样式<br>3. 布局阶段<br>  1). 创建布局树<br>  2). 布局计算<br>4. 页面渲染<br>  1). 渲染进程将 HTML 内容转换为能够读懂的 DOM 树结构。<br>  2). 渲染引擎将 CSS 样式表转化为浏览器可以理解的 styleSheets，计算出 DOM 节点的样式。<br>  3). 创建布局树，并计算元素的布局信息。<br>  4). 对布局树进行分层，并生成分层树。<br>  5). 为每个图层生成绘制列表，并将其提交到合成线程。<br>  6). 合成线程将图层分成图块，并在光栅化线程池中将图块转换成位图。<br>  7). 合成线程发送绘制图块命令 DrawQuad 给浏览器进程。<br>  8). 浏览器进程根据 DrawQuad 消息生成页面，并显示到显示器上。</p>
+<p>重排</p>
+<ol>
+<li>更新了元素的几何属性<br>如果你通过 JavaScript 或者 CSS 修改元素的几何位置属性，例如改变元素的宽度、高度等，那么浏览器会触发重新布局，解析之后的一系列子阶段，这个过程就叫重排。无疑，重排需要更新完整的渲染流水线，所以开销也是最大的。</li>
+</ol>
+<p>重绘<br>2. 更新元素的绘制属性<br>如果修改了元素的背景颜色，那么布局阶段将不会被执行，因为并没有引起几何位置的变换，所以就直接进入了绘制阶段，然后执行之后的一系列子阶段，这个过程就叫重绘。相较于重排操作，重绘省去了布局和分层阶段，所以执行效率会比重排操作要高一些。</p>
+<p>合成<br>3. 直接合成阶段<br>在上图中，我们使用了 CSS 的 transform 来实现动画效果，这可以避开重排和重绘阶段，直接在非主线程上执行合成动画操作。这样的效率是最高的，因为是在非主线程上合成，并没有占用主线程的资源，另外也避开了布局和绘制两个子阶段，所以相对于重绘和重排，合成能大大提升绘制效率。</p>
 
-
-
-
-              </div>
             </div>
-          </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Web/">Web</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/01/15/%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">浏览器中的页面循环系统</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/01/15/Chrome%E4%B8%ADJavaScript%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B/">
+                        <span class="hidden-mobile">Chrome中JavaScript的执行流程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
         </div>
       </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
     
 
     
@@ -314,9 +391,15 @@
 
 
 
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.3/dist/tocbot.min.js" ></script>
 
 
 
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.1/anchor.min.js" ></script>
 
 
 
